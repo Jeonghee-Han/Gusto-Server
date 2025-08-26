@@ -9,13 +9,8 @@ import lombok.*;
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class City {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(nullable = false, updatable = false)
-    private Long cityId;
-
-    @Column(nullable = false, columnDefinition = "VARCHAR(5)")
+    @Column(nullable = false, updatable = false, columnDefinition = "VARCHAR(5)")
     private String cityCode;
 
     @Column(nullable = false, columnDefinition = "VARCHAR(10)")

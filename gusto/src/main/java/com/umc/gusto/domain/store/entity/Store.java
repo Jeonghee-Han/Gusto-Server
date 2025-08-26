@@ -6,6 +6,11 @@ import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.PrecisionModel;
+
 @Entity
 @Getter
 @Builder
@@ -30,26 +35,26 @@ public class Store extends BaseTime {
     private Double latitude;
 
     // 인덱싱 처리를 위한 point 타입 컬럼 추가
-    @Column(columnDefinition = "POINT")
-    private String location;
+    @Column(columnDefinition = "POINT SRID 4326")
+    private Point location;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "categoryId")
-    private Category category;
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "categoryId")
+//    private Category category;
 
     @Column(columnDefinition = "VARCHAR(20)")
     private String categoryString;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "stateId", nullable = false)
+    @JoinColumn(name = "stateCode", nullable = false)
     private State state;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "cityId", nullable = false)
+    @JoinColumn(name = "cityCode", nullable = false)
     private City city;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "townId", nullable = false)
+    @JoinColumn(name = "townCode", nullable = false)
     private Town town;
 
     @Column(nullable = false, columnDefinition = "VARCHAR(60)")
@@ -75,7 +80,8 @@ public class Store extends BaseTime {
     @PreUpdate
     public void updateLocation() {
         if (longitude != null && latitude != null) {
-            this.location = String.format("POINT(%f %f)", longitude, latitude);
+            GeometryFactory factory = new GeometryFactory(new PrecisionModel(), 4326);
+            this.location = factory.createPoint(new Coordinate(longitude, latitude));
         }
     }
 

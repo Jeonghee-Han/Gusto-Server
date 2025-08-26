@@ -58,71 +58,62 @@ public class StoreController {
     public ResponseEntity<List<GetStoresInMapResponse>> getStoresInMap(
             @AuthenticationPrincipal AuthUser authUser,
 //            @RequestParam(name = "townCode") String townCode,
-            @RequestParam(name = "latitude") double latitude,
             @RequestParam(name = "longitude") double longitude,
+            @RequestParam(name = "latitude") double latitude,
             @RequestParam(name = "radius", defaultValue = "1000", required = false) int radius,   // meter 단위, 기본 1km
             @RequestParam(name = "myCategoryId", required = false) List<Long> myCategoryIds,
             @RequestParam(name = "visited", required = false) Boolean visited
             ) {
 
         User user = authUser.getUser();
-        List<GetStoresInMapResponse> getStoresInMaps = storeService.getStoresInMap(user, latitude, longitude, radius, myCategoryIds, visited);
+        List<GetStoresInMapResponse> getStoresInMaps = storeService.getStoresInMap(String.valueOf(user.getUserId()), longitude, latitude, radius, myCategoryIds, visited);
         return  ResponseEntity.status(HttpStatus.OK).body(getStoresInMaps);
     }
 
     /**
      * 현재 지역의 찜한 식당 방문 여부 조회
-     * [GET] /stores/pins?myCategoryId={categoryId}&latitude={latitude}&longitude={longitude}&radius={radius}
+     * [GET] /stores/pins?myCategoryId={categoryId}&townCode={townCode}
      */
     @GetMapping("/pins")
     public ResponseEntity<List<GetPinStoreResponse>> getPinStoresByCategoryAndLocation(
             @AuthenticationPrincipal AuthUser authUser,
-            @RequestParam(name = "latitude") double latitude,
-            @RequestParam(name = "longitude") double longitude,
-            @RequestParam(name = "radius", defaultValue = "1000", required = false) int radius,
-            @RequestParam(name = "myCategoryId", required = false) Long myCategoryId
-//            @RequestParam(name = "townCode") String townCode
+            @RequestParam(name = "myCategoryId", required = false) Long myCategoryId,
+            @RequestParam(name = "townCode") String townCode
     ){
         User user = authUser.getUser();
-        List<GetPinStoreResponse> storeList = storeService.getPinStoresByCategoryAndLocation(user, myCategoryId, latitude, longitude, radius);
+        List<GetPinStoreResponse> storeList = storeService.getPinStoresByCategoryAndLocation(user, myCategoryId, townCode);
         return ResponseEntity.status(HttpStatus.OK).body(storeList);
     }
 
     /**
      * 현재 지역의 찜한 방문 식당 조회
-     * [GET] /stores/pins/visited?myCategoryId={categoryId}&latitude={latitude}&longitude={longitude}&radius={radius}
+     * [GET] /stores/pins/visited?myCategoryId={categoryId}&townCode={townCode}
      */
     @GetMapping("/pins/visited")
     public ResponseEntity<Map<String, Object>> getVisitedPinStoresByCategoryAndLocation(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(name = "myCategoryId", required = false) Long myCategoryId,
-//            @RequestParam(name = "townCode") String townCode,
-            @RequestParam(name = "latitude") double latitude,
-            @RequestParam(name = "longitude") double longitude,
-            @RequestParam(name = "radius", defaultValue = "1000", required = false) int radius,
+            @RequestParam(name = "townCode") String townCode,
             @RequestParam(name = "lastStoreId", required = false) Long lastStoreId,
             @RequestParam(name = "size", defaultValue = "5") int size){
         User user = authUser.getUser();
-        Map<String, Object> visitedStoreList = storeService.getVisitedPinStores(user, myCategoryId, latitude, longitude, radius, lastStoreId, size);
+        Map<String, Object> visitedStoreList = storeService.getVisitedPinStores(user, myCategoryId, townCode, lastStoreId, size);
         return ResponseEntity.status(HttpStatus.OK).body(visitedStoreList);
     }
 
     /**
      * 현재 지역의 찜한 미방문 식당 조회
-     * [GET] /stores/pins/unvisited?myCategoryId={categoryId}&latitude={latitude}&longitude={longitude}&radius={radius}
+     * [GET] /stores/pins/unvisited?myCategoryId={categoryId}&townCode={townCode}
      */
     @GetMapping("/pins/unvisited")
     public ResponseEntity<Map<String, Object>> getUnvisitedPinStoresByCategoryAndLocation(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(name = "myCategoryId", required = false) Long myCategoryId,
-//            @RequestParam(name = "townCode") String townCode,
-            @RequestParam(name = "latitude") double latitude,
-            @RequestParam(name = "longitude") double longitude,
-            @RequestParam(name = "radius", defaultValue = "1000", required = false) int radius,
+            @RequestParam(name = "townCode") String townCode,
             @RequestParam(name = "lastStoreId", required = false) Long lastStoreId,
             @RequestParam(name = "size", defaultValue = "5") int size) {
         User user = authUser.getUser();
-        Map<String, Object> unvisitedStoreList = storeService.getUnvisitedPinStores(user, myCategoryId, latitude, longitude, radius, lastStoreId, size);
+        Map<String, Object> unvisitedStoreList = storeService.getUnvisitedPinStores(user, myCategoryId, townCode, lastStoreId, size);
         return ResponseEntity.status(HttpStatus.OK).body(unvisitedStoreList);
     }
 
