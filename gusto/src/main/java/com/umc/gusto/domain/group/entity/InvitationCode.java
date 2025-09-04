@@ -24,6 +24,6 @@ public class InvitationCode extends BaseTime {
     @JoinColumn(name = "groupId", nullable = false)
     private Group group;
 
-    @Column(columnDefinition = "VARCHAR(12)")
+    @Column(columnDefinition = "VARCHAR(255)")
     private String code;
 }
