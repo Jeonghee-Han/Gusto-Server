@@ -106,4 +106,9 @@ public class MyCategoryController {
             return ResponseEntity.status(HttpStatus.OK).build();
 
     }
+
+    /**
+     * 내 카테고리 내 가게 이동
+     * [PATCH] /myCateo
+     */
 }

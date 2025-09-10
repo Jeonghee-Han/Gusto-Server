@@ -74,6 +74,7 @@ public class StoreServiceImpl implements StoreService{
                     .address(store.getAddress())
                     .longitude(store.getLongitude())
                     .latitude(store.getLatitude())
+                    .contact(store.getContact())
                     .businessDay(businessDays)
                     .reviewImg3(reviewImg)
                     .pin(isPinned)
