@@ -207,7 +207,7 @@ public class MyCategoryServiceImpl implements MyCategoryService {
 
 
     @Transactional
-    public void modifyMyCategory(User user, Long myCategoryId, UpdateMyCategoryRequest updateMyCategory) {
+    public void updateMyCategory(User user, Long myCategoryId, UpdateMyCategoryRequest updateMyCategory) {
         MyCategory existingMyCategory = myCategoryRepository.findByUserAndMyCategoryId(user,myCategoryId)
                 .orElseThrow(() -> new GeneralException(Code.MY_CATEGORY_NOT_FOUND));
 

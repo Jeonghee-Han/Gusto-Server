@@ -1,6 +1,7 @@
 package com.umc.gusto.domain.myCategory.controller;
 
 import com.umc.gusto.domain.myCategory.model.request.CreatePinRequest;
+import com.umc.gusto.domain.myCategory.model.request.UpdatePinRequest;
 import com.umc.gusto.domain.myCategory.model.response.CreatePinResponse;
 import com.umc.gusto.domain.myCategory.service.PinService;
 import com.umc.gusto.domain.user.entity.User;
@@ -47,6 +48,21 @@ public class PinController {
             pinService.deletePin(user, pinIds);
 
             return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    /**
+     * 찜 수정
+     * [PATCH] /myCategories/pins?pinId={pinId}&...
+     */
+    @PatchMapping("/pins")
+    public ResponseEntity<?> updatePin(
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestParam(name = "pinId") List<Long> pinIds,
+            @RequestBody UpdatePinRequest request) {
+        User user =  authUser.getUser();
+        pinService.updatePin(user, pinIds, request);
+
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
 }
