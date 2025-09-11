@@ -121,7 +121,7 @@ public class StoreController {
      * 맛집 검색 엔진
      */
     @GetMapping("/search")
-    public ResponseEntity<List<GetStoreInfoResponse>> searchStore(@RequestParam(name = "keyword") String keyword){
-        return ResponseEntity.status(HttpStatus.OK).body(storeService.searchStore(keyword));
+    public ResponseEntity<SearchStoreResponse> searchStore(@RequestParam(name = "keyword") String keyword, @RequestParam(name = "cursorId", required = false) Long cursorId){
+        return ResponseEntity.status(HttpStatus.OK).body(storeService.searchStore(keyword, cursorId));
     }
 }

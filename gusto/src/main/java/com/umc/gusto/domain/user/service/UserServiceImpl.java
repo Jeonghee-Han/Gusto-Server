@@ -425,6 +425,11 @@ public class UserServiceImpl implements UserService{
             throw new GeneralException(Code.ALREADY_EXIST_SOCIAL_CONNECT);
         }
 
+        if(socialRepository.existsBySocialTypeAndProviderId(Social.SocialType.valueOf(signInRequest.getProvider()),
+                signInRequest.getProviderId())) {
+            throw new GeneralException(Code.ALREADY_EXIST_CONNECTED_ACCOUNT);
+        }
+
         Social social = Social.builder()
                 .user(user)
                 .socialType(Social.SocialType.valueOf(signInRequest.getProvider()))

@@ -22,11 +22,6 @@ public class Social extends BaseTime {
     @Column(nullable = false)
     private SocialType socialType;
 
-    @Builder.Default
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 15)
-    private SocialStatus socialStatus = SocialStatus.CONNECTED;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId")
     private User user;
@@ -36,17 +31,5 @@ public class Social extends BaseTime {
 
     public enum SocialType {
         KAKAO, NAVER, GOOGLE
-    }
-
-    public enum SocialStatus {
-        CONNECTED, WAITING_SIGN_UP, DISCONNECTED
-    }
-
-    public void updateUser(User user) {
-        this.user = user;
-    }
-
-    public void updateSocialStatus(SocialStatus socialStatus) {
-        this.socialStatus = socialStatus;
     }
 }
