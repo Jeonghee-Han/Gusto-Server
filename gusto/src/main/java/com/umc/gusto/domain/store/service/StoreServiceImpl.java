@@ -3,6 +3,8 @@ package com.umc.gusto.domain.store.service;
 import com.umc.gusto.domain.myCategory.entity.Pin;
 import com.umc.gusto.domain.myCategory.repository.PinRepository;
 import com.umc.gusto.domain.review.entity.Review;
+import com.umc.gusto.domain.review.model.response.BasicViewResponse;
+import com.umc.gusto.domain.review.model.response.SearchFeedResponse;
 import com.umc.gusto.domain.review.repository.ReviewRepository;
 import com.umc.gusto.domain.store.entity.OpeningHours;
 import com.umc.gusto.domain.store.entity.Store;
@@ -15,6 +17,7 @@ import com.umc.gusto.global.exception.Code;
 import com.umc.gusto.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -312,10 +315,17 @@ public class StoreServiceImpl implements StoreService{
     }
 
     @Override
-    public List<GetStoreInfoResponse> searchStore(String keyword) {
-        List<Store> searchResult = storeRepository.findTop5ByStoreNameContains(keyword);
+    public SearchStoreResponse searchStore(String keyword, Long cursor) {
+        PageRequest pageRequest = PageRequest.of(0,15);
 
-        return searchResult.stream()
+        if(cursor == null){
+            cursor = Long.MAX_VALUE;
+        }
+
+//        List<Store> searchResult = storeRepository.findTop5ByStoreNameContains(keyword);
+        Page<Store> searchResult = storeRepository.searchByStoreNameContains(keyword, cursor, pageRequest);
+
+        List<GetStoreInfoResponse> searchStoreList = searchResult.stream()
                 .map(result -> {
                     Optional<Review> review = reviewRepository.findFirstByStoreOrderByLikedDesc(result);
                     String reviewImg = review.map(Review::getImg1).orElse("");
@@ -327,6 +337,15 @@ public class StoreServiceImpl implements StoreService{
                             .reviewImg(reviewImg)
                             .build();
                 })
-                .collect(Collectors.toList());
+                .toList();
+
+        if(searchResult.isEmpty()){
+            return SearchStoreResponse.builder().build();
+        }
+
+        boolean checkNext = searchResult.hasNext();
+        Long cursorId = searchResult.isEmpty() || !checkNext ? null : searchStoreList.get(searchStoreList.size()-1).getStoreId();
+
+        return SearchStoreResponse.of(searchStoreList, checkNext, cursorId);
     }
 }

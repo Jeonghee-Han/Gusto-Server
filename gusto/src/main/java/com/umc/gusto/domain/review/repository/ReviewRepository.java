@@ -5,12 +5,14 @@ import com.umc.gusto.domain.review.model.FeedVO;
 import com.umc.gusto.domain.store.entity.Store;
 import com.umc.gusto.domain.user.entity.User;
 import com.umc.gusto.global.common.BaseEntity;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import io.lettuce.core.dynamic.annotation.Param;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -42,17 +44,22 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     List<FeedVO> findRandomFeedByUser(@Param("user") UUID user); //WHERE r.user_id <> :userZ
 
     boolean existsByStoreAndUserNickname(Store store, String nickname);
-
+  
     /*
         검색 관련
      */
     @Query("SELECT r FROM Review r WHERE r.status = 'ACTIVE' AND r.publishReview = 'PUBLIC' AND r.skipCheck = false " +
-            "AND r.reviewId < :cursorId AND r.store.storeName like concat('%', :keyword, '%') OR r.comment like concat('%', :keyword, '%')" +
+            "AND r.reviewId < :cursorId " +
+            "AND (REPLACE(r.store.storeName, ' ', '') LIKE LOWER(CONCAT('%', REPLACE(:keyword, ' ', ''), '%'))" +
+            " OR REPLACE(r.comment, ' ', '') LIKE LOWER(CONCAT('%', REPLACE(:keyword, ' ', ''), '%')))" +
             "ORDER BY r.reviewId desc")
     Page<Review> searchByStoreContains(String keyword, Long cursorId, PageRequest pageRequest); //TODO: 후에 페이징 처리 하기
     @Query("SELECT t.review FROM Tagging t WHERE t.review.status = 'ACTIVE' AND t.review.publishReview = 'PUBLIC' AND t.review.skipCheck=false " +
-            "AND t.review.reviewId < :cursorId AND t.review.store.storeName like concat('%', :keyword, '%') AND t.hashTag.hasTagId = :hashTagId" +
-            " ORDER BY t.review.reviewId desc")
+            "AND t.review.reviewId < :cursorId " +
+            "AND t.hashTag.hasTagId = :hashTagId " +
+            "AND (REPLACE(t.review.store.storeName, ' ', '') LIKE LOWER(CONCAT('%', REPLACE(:keyword, ' ', ''), '%'))" +
+            " OR REPLACE(t.review.comment, ' ', '') LIKE LOWER(CONCAT('%', REPLACE(:keyword, ' ', ''), '%'))) " +
+            "ORDER BY t.review.reviewId desc")
     Page<Review> searchByStoreAndHashTagContains(String keyword, Long hashTagId, Long cursorId, PageRequest pageRequest);
     @Query("SELECT t.review FROM Tagging t WHERE t.review.status = 'ACTIVE' AND t.review.publishReview = 'PUBLIC' AND t.review.skipCheck=false " +
             "AND t.review.reviewId < :cursorId AND t.hashTag.hasTagId = :hashTagId ORDER BY t.review.reviewId desc")
@@ -70,4 +77,10 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query("select r from Review r where r.user = :user and r.status = 'ACTIVE'" +
             "and r.visitedAt < :visitedAt or (r.visitedAt = :visitedAt and r.reviewId < :reviewId)")
     Page<Review> pagingMyReview(User user, Long reviewId, LocalDate visitedAt,PageRequest pageRequest);
+
+    // Hard delete
+    @Transactional
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM Review r WHERE r.status = 'INACTIVE'")
+    int deleteAllInActive();
 }

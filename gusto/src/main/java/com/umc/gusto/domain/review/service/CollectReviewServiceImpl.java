@@ -32,7 +32,7 @@ public class CollectReviewServiceImpl implements CollectReviewService{
         Page<Review> reviews = pagingReview(user, reviewId, size);
 
         //다음에 조회될 리뷰가 있는지 확인하기
-        boolean checkNext = reviews.hasNext();
+        boolean checkNext = !reviews.isEmpty() && reviews.hasNext();
         List<BasicViewResponse> basicViewResponse = reviews.map(BasicViewResponse::of).toList();
 
         Long cursorId = null;
@@ -63,7 +63,7 @@ public class CollectReviewServiceImpl implements CollectReviewService{
         Page<Review> reviews = pagingReview(user, reviewId, size);
 
         //다음에 조회될 리뷰가 있는지 확인하기
-        boolean checkNext = reviews.hasNext();
+        boolean checkNext = !reviews.isEmpty() && reviews.hasNext();
 
         List<TimelineViewResponse> timelineViewResponses = reviews.map(review -> {
                     int visitedCount = reviewRepository.countByStoreAndUser(review.getStore(), user);
@@ -81,7 +81,7 @@ public class CollectReviewServiceImpl implements CollectReviewService{
     @Override
     @Transactional(readOnly = true)
     public CollectReviewsResponse getOthersReview(String nickName, Long reviewId, int size) {
-        Page<Review> reviews;
+        Page<Review> reviews = Page.empty();
         User other = userRepository.findByNicknameAndMemberStatusIs(nickName, User.MemberStatus.ACTIVE).orElseThrow(()-> new NotFoundException(Code.USER_NOT_FOUND));
 
         //사용자가 리뷰 프로필에 표기를 했는지 체크
@@ -96,12 +96,14 @@ public class CollectReviewServiceImpl implements CollectReviewService{
         if(reviewId == null){
             reviews = reviewRepository.pagingInstaViewNoCursor(other, pageRequest);
         }else {
-            Review review = reviewRepository.findById(reviewId).orElseThrow(()->new NotFoundException(Code.REVIEW_NOT_FOUND));
-            reviews = reviewRepository.pagingInstaView(other, reviewId, review.getVisitedAt(), pageRequest);
+            Review review = reviewRepository.findById(reviewId).orElse(null);
+            if(review != null){
+                reviews = reviewRepository.pagingInstaView(other, reviewId, review.getVisitedAt(), pageRequest);
+            }
         }
 
         //다음 조회 되는 리뷰가 있는지 확인
-        boolean checkNext = reviews.hasNext();
+        boolean checkNext = !reviews.isEmpty() && reviews.hasNext();
 
         //response 형태로 변환
         List<BasicViewResponse> basicViewResponse = reviews.map(BasicViewResponse::of).toList();
@@ -118,16 +120,14 @@ public class CollectReviewServiceImpl implements CollectReviewService{
         Page<Review> reviews;
         //최초로 조회한 경우
         if(cursorId==null){
-            reviews = reviewRepository.findAllByUserAndStatus(user, BaseEntity.Status.ACTIVE, pageRequest).orElseThrow(()-> new NotFoundException(Code.REVIEW_NOT_FOUND));
+            reviews = reviewRepository.findAllByUserAndStatus(user, BaseEntity.Status.ACTIVE, pageRequest).orElse(Page.empty());
         }else{ //최초가 아닌 경우
             //커서 id를 기반으로 그보다 낮은 ID의 리뷰를 가져온다 => 최신 날짜가 이전의 데이터가 나타난다.
-            Review review = reviewRepository.findById(cursorId).orElseThrow(()->new NotFoundException(Code.REVIEW_NOT_FOUND));
+            Review review = reviewRepository.findById(cursorId).orElse(null);
+            if(review == null) return Page.empty();
             reviews = reviewRepository.pagingMyReview(user, cursorId, review.getVisitedAt(),pageRequest);
         }
 
-        if(reviews.isEmpty()){
-            throw new NotFoundException(Code.REVIEW_NOT_FOUND);
-        }
         return reviews;
     }
 }

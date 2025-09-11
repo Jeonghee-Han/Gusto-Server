@@ -79,9 +79,12 @@ public enum Code {
     UNMATCHED_AUTH_INFO(HttpStatus.FORBIDDEN, 403701, "AccessToken과 providerId가 일치하지 않습니다."),
     NEED_LEAST_ONE_SOCIAL_ACCOUNT(HttpStatus.FORBIDDEN, 403702, "최소 1개의 소셜 계정이 연동되어야 합니다."),
     SOCIAL_ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND, 404701, "해당 소셜 계정이 연결되어 있지 않습니다."),
-    ALREADY_EXIST_SOCIAL_CONNECT(HttpStatus.CONFLICT, 409701, "해당 소셜 서비스에 연결된 계정이 이미 존재합니다."),
+    ALREADY_EXIST_SOCIAL_CONNECT(HttpStatus.CONFLICT, 409701, "해당 소셜 서비스에 이미 연결되었습니다."),
+    ALREADY_EXIST_CONNECTED_ACCOUNT(HttpStatus.CONFLICT, 409702, "해당 소셜 계정에 연결된 계정이 이미 존재합니다."),
     OAUTH_FIND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 500701, "소셜 인증 서버에서 에러가 발생했습니다."),
     OAUTH_NOT_FOUND_TOKEN(HttpStatus.NOT_FOUND, 404702, "유효한 소셜 서버 Access Token이 아닙니다."),
+    INVALID_CRYPTOGRAM(HttpStatus.BAD_REQUEST, 400701, "유효하지 않은 암호문입니다."),
+    INVALID_BACK_TOKEN(HttpStatus.BAD_REQUEST, 400702, "유효하지 않은 back-token 입니다."),
 
     FOR_TEST_ERROR(HttpStatus.BAD_REQUEST,49999, "테스트용 에러")
 
