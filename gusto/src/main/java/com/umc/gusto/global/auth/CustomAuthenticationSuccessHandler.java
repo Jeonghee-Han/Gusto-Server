@@ -5,7 +5,7 @@ import com.umc.gusto.global.auth.model.CustomOAuth2User;
 import com.umc.gusto.global.auth.model.OAuthAttributes;
 import com.umc.gusto.global.auth.model.Tokens;
 import com.umc.gusto.global.auth.service.JwtService;
-import com.umc.gusto.global.auth.service.OAuthService;
+import com.umc.gusto.global.auth.service.AuthService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,7 +22,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class CustomAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtService jwtService;
-    private final OAuthService oAuthService;
+    private final AuthService authService;
     @Value("${default.login.redirect.url}")
     private String redirectUrl;
 
@@ -33,7 +33,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 
             response.setCharacterEncoding("utf-8");
 
-            if(socialInfo.getSocialStatus() == Social.SocialStatus.CONNECTED){
+            if(socialInfo != null){
                 String userUUID = String.valueOf(socialInfo.getUser().getUserId());
 
                 Tokens tokens = jwtService.createAndSaveTokens(userUUID);
@@ -49,7 +49,6 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 
             OAuthAttributes attributes = oAuth2User.getOAuthAttributes();
             String uri = UriComponentsBuilder.fromUriString(redirectUrl + "/new-user")
-//                    .queryParam("temp-token", String.valueOf(socialInfo.getTemporalToken()))
                     .queryParam("nickname", attributes.getNickname())
                     .queryParam("profileImg", attributes.getProfileImg())
                     .queryParam("gender", attributes.getGender().name())

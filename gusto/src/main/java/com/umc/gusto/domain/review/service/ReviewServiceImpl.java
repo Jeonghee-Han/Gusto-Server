@@ -20,7 +20,6 @@ import com.umc.gusto.global.exception.Code;
 import com.umc.gusto.global.exception.GeneralException;
 import com.umc.gusto.global.exception.customException.NoPermission;
 import com.umc.gusto.global.exception.customException.NotFoundException;
-import com.umc.gusto.global.exception.customException.PrivateItemException;
 import com.umc.gusto.global.util.S3Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -203,6 +202,11 @@ public class ReviewServiceImpl implements ReviewService{
         if(imageUrls.size()>1) review.updateImg2(imageUrls.get(1));
         if(imageUrls.size()>2) review.updateImg3(imageUrls.get(2));
         if(imageUrls.size()>3) review.updateImg4(imageUrls.get(3));
+    }
+
+    @Transactional
+    public void hardDeleteAllSoftDeleted() {
+        reviewRepository.deleteAllInActive();
     }
 
 }

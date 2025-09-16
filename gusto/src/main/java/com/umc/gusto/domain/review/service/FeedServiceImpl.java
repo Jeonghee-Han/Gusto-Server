@@ -65,7 +65,7 @@ public class FeedServiceImpl implements FeedService{
 
         boolean checkNext = searchResult.hasNext();
         List<BasicViewResponse> basicViewResponse = searchResult.stream().map(BasicViewResponse::of).toList();
-        Long cursorId = basicViewResponse.isEmpty() ? null : basicViewResponse.get(basicViewResponse.size()-1).getReviewId();
+        Long cursorId = basicViewResponse.isEmpty() || !checkNext ? null : basicViewResponse.get(basicViewResponse.size()-1).getReviewId();
 
         return SearchFeedResponse.of(basicViewResponse, checkNext, cursorId);
     }

@@ -312,7 +312,7 @@ public class UserController {
 
     /**
      * 연결된 소셜 계정 목록
-     * [POST] /users/social-accounts
+     * [GET] /users/social-accounts
      * @param -
      * @return -
      */
