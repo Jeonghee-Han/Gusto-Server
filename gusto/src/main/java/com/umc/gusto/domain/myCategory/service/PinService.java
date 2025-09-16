@@ -10,6 +10,6 @@ import java.util.List;
 
 public interface PinService {
     CreatePinResponse createPin(User user, Long myCategoryId, CreatePinRequest createPin);
-    void deletePin(User user, List<Long> pinIds);
-    void updatePin(User user, List<Long> pinIds, UpdatePinRequest request);
+    void deletePins(User user, List<Long> pinIds);
+    void updatePins(User user, List<Long> pinIds, UpdatePinRequest request);
 }

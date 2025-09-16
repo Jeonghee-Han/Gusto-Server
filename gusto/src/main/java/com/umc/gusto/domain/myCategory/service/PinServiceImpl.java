@@ -59,7 +59,7 @@ public class PinServiceImpl implements PinService{
     }
 
     @Transactional
-    public void deletePin(User user, List<Long> pinIds) {
+    public void deletePins(User user, List<Long> pinIds) {
         for (Long pinId : pinIds) {
             Pin pin = pinRepository.findByUserAndPinId(user, pinId)
                     .orElseThrow(() -> new GeneralException(Code.PIN_NOT_FOUND));
@@ -74,7 +74,7 @@ public class PinServiceImpl implements PinService{
     }
 
     @Transactional
-    public void updatePin(User user, List<Long> pinIds, UpdatePinRequest request) {
+    public void updatePins(User user, List<Long> pinIds, UpdatePinRequest request) {
         // 변경할 카테고리 조회 (외래키로 엮어 있는 컬럼을 수정하려면 엔티티를 조회해야한다)
         MyCategory newMyCategory = myCategoryRepository.findById(request.getMyCategoryId())
                 .orElseThrow(() -> new GeneralException(Code.MY_CATEGORY_NOT_FOUND));

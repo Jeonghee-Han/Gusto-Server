@@ -41,11 +41,11 @@ public class PinController {
      * [DELETE] /myCategories/pins?pinId={pinId}&...
      */
     @DeleteMapping("/pins")
-    public ResponseEntity<?> deletePin(
+    public ResponseEntity<?> deletePins(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(name = "pinId") List<Long> pinIds) {
             User user =  authUser.getUser();
-            pinService.deletePin(user, pinIds);
+            pinService.deletePins(user, pinIds);
 
             return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -55,12 +55,12 @@ public class PinController {
      * [PATCH] /myCategories/pins?pinId={pinId}&...
      */
     @PatchMapping("/pins")
-    public ResponseEntity<?> updatePin(
+    public ResponseEntity<?> updatePins(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(name = "pinId") List<Long> pinIds,
             @RequestBody UpdatePinRequest request) {
         User user =  authUser.getUser();
-        pinService.updatePin(user, pinIds, request);
+        pinService.updatePins(user, pinIds, request);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
