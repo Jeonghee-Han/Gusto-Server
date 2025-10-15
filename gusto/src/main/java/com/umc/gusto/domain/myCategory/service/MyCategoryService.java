@@ -22,7 +22,7 @@ public interface MyCategoryService {
 
     void createMyCategory(User user, CreateMyCategoryRequest request);
 
-    void modifyMyCategory(User user,Long myCategoryId, UpdateMyCategoryRequest request);
+    void updateMyCategory(User user, Long myCategoryId, UpdateMyCategoryRequest request);
 
     void deleteMyCategories(User user, List<Long> myCategoryIds);
 

@@ -15,6 +15,7 @@ import org.hibernate.annotations.DynamicUpdate;
 @RequiredArgsConstructor
 @DynamicInsert
 @DynamicUpdate
+@Table(name = "pin")
 public class Pin extends BaseTime {
 
     @Id
@@ -32,4 +33,8 @@ public class Pin extends BaseTime {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "storeId")
     private Store store;
+
+    public void updateMyCategory(MyCategory myCategory) {
+        this.myCategory = myCategory;
+    }
 }

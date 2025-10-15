@@ -3,8 +3,6 @@ package com.umc.gusto.domain.store.service;
 import com.umc.gusto.domain.myCategory.entity.Pin;
 import com.umc.gusto.domain.myCategory.repository.PinRepository;
 import com.umc.gusto.domain.review.entity.Review;
-import com.umc.gusto.domain.review.model.response.BasicViewResponse;
-import com.umc.gusto.domain.review.model.response.SearchFeedResponse;
 import com.umc.gusto.domain.review.repository.ReviewRepository;
 import com.umc.gusto.domain.store.entity.OpeningHours;
 import com.umc.gusto.domain.store.entity.Store;
@@ -12,6 +10,7 @@ import com.umc.gusto.domain.store.model.response.*;
 import com.umc.gusto.domain.store.repository.OpeningHoursRepository;
 import com.umc.gusto.domain.store.repository.StoreRepository;
 import com.umc.gusto.domain.user.entity.User;
+import com.umc.gusto.domain.user.repository.UserRepository;
 import com.umc.gusto.global.exception.Code;
 import com.umc.gusto.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +30,7 @@ public class StoreServiceImpl implements StoreService{
     private final StoreRepository storeRepository;
     private final ReviewRepository reviewRepository;
     private final PinRepository pinRepository;
+    private final UserRepository userRepository;
     private final OpeningHoursRepository openingHoursRepository;
     private static final int PAGE_SIZE_FIRST = 3;
     private static final int PAGE_SIZE = 6;
@@ -75,6 +75,7 @@ public class StoreServiceImpl implements StoreService{
                     .address(store.getAddress())
                     .longitude(store.getLongitude())
                     .latitude(store.getLatitude())
+                    .contact(store.getContact())
                     .businessDay(businessDays)
                     .reviewImg3(reviewImg)
                     .pin(isPinned)
@@ -152,13 +153,16 @@ public class StoreServiceImpl implements StoreService{
     }
 
     @Transactional(readOnly = true)
-    public List<GetStoresInMapResponse> getStoresInMap(User user, String townCode, List<Long> myCategoryIds, Boolean visited) {
+    public List<GetStoresInMapResponse> getStoresInMap(String userId, Double longitude, Double latitude, int radius, List<Long> myCategoryIds, Boolean visited) {
+//        System.out.println("getStoresInMap called with userId = " + userId
+//                + ", longitude = " + longitude + ", latitude = " + latitude);
+
         List<Pin> pins = new ArrayList<>();
         if (myCategoryIds == null || myCategoryIds.isEmpty()) {
-            pins = pinRepository.findPinsByUserAndTownCodeAndPinIdDESC(user, townCode);
+            pins = pinRepository.findPinsByUserWithinRadiusPinIdDESC(userId, longitude, latitude, radius);
         } else {
             for (Long myCategoryId : myCategoryIds) {
-                pins.addAll(pinRepository.findPinsByUserAndMyCategoryIdAndTownCodeAndPinIdDESC(user, myCategoryId, townCode));
+                pins.addAll(pinRepository.findPinsByUserAndMyCategoryIdWithinRadiusPinIdDESC(userId, myCategoryId, longitude, latitude, radius));
             }
         }
 
@@ -172,7 +176,13 @@ public class StoreServiceImpl implements StoreService{
         } else {
             for (Pin pin : pins) {
                 Store store = pin.getStore();
+                // userId(UUID)로 User 조회
+                User user = userRepository.findById(UUID.fromString(userId))
+                        .orElseThrow(() -> new GeneralException(Code.USER_NOT_FOUND));
+
+                // 방문 여부 확인
                 boolean hasVisited = reviewRepository.existsByStoreAndUserNickname(store, user.getNickname());
+
                 if (visited) {
                     if (hasVisited) {
                         pinStores.add(store);
@@ -299,7 +309,7 @@ public class StoreServiceImpl implements StoreService{
     }
 
     @Transactional(readOnly = true)
-    public Map<String, Object> getUnvisitedPinStores(User user, Long myCategoryId, String townCode,  Long lastStoreId, int size) {
+    public Map<String, Object> getUnvisitedPinStores(User user, Long myCategoryId, String townCode, Long lastStoreId, int size) {
         return getPinStoresInfo(user, myCategoryId, townCode, false, lastStoreId, size);
     }
 
@@ -323,6 +333,8 @@ public class StoreServiceImpl implements StoreService{
                             .storeName(result.getStoreName())
                             .categoryString(result.getCategoryString())
                             .address(result.getAddress())
+                            .latitude(result.getLatitude())
+                            .longitude(result.getLongitude())
                             .reviewImg(reviewImg)
                             .build();
                 })

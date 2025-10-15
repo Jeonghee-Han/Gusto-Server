@@ -6,6 +6,11 @@ import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.PrecisionModel;
+
 @Entity
 @Getter
 @Builder
@@ -28,6 +33,14 @@ public class Store extends BaseTime {
 
     @Column(columnDefinition = "DOUBLE(17,15)")
     private Double latitude;
+
+    // 인덱싱 처리를 위한 point 타입 컬럼 추가
+    @Column(columnDefinition = "POINT SRID 4326")
+    private Point location;
+
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "categoryId")
+//    private Category category;
 
     @Column(columnDefinition = "VARCHAR(20)")
     private String categoryString;
@@ -61,5 +74,16 @@ public class Store extends BaseTime {
     public enum StoreStatus {
         ACTIVE, INACTIVE, CLOSED
     }
+
+    // store 생성 시 location을 위도/경도 값으로 세팅
+    @PrePersist
+    @PreUpdate
+    public void updateLocation() {
+        if (longitude != null && latitude != null) {
+            GeometryFactory factory = new GeometryFactory(new PrecisionModel(), 4326);
+            this.location = factory.createPoint(new Coordinate(longitude, latitude));
+        }
+    }
+
 }
 

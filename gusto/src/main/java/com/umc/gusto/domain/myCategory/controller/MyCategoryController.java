@@ -81,13 +81,13 @@ public class MyCategoryController {
      * [PATCH] /myCategories/{myCategoryId}
      */
     @PatchMapping("/{myCategoryId}")
-    public ResponseEntity<?> modifyMyCategory(
+    public ResponseEntity<?> updateMyCategory(
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long myCategoryId,
             @RequestBody UpdateMyCategoryRequest request
     ) {
         User user = authUser.getUser();
-        myCategoryService.modifyMyCategory(user, myCategoryId, request);
+        myCategoryService.updateMyCategory(user, myCategoryId, request);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }

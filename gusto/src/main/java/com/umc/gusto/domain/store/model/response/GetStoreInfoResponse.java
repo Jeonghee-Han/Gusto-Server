@@ -14,5 +14,7 @@ public class GetStoreInfoResponse {
     String categoryString;
     String storeName;
     String address;
+    Double longitude;
+    Double latitude;
     String reviewImg;
 }
