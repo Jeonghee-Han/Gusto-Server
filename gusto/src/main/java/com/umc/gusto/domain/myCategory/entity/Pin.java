@@ -15,6 +15,7 @@ import org.hibernate.annotations.DynamicUpdate;
 @RequiredArgsConstructor
 @DynamicInsert
 @DynamicUpdate
+@Table(name = "pin")
 public class Pin extends BaseTime {
 
     @Id

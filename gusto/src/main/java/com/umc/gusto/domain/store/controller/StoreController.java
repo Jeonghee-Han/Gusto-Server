@@ -52,18 +52,21 @@ public class StoreController {
 
     /**
      * 현 지역의 카테고리 별 찜한 가게 목록 조회(카테고리 다중 선택 가능)
-     * [GET] /stores/map?townCode={townCode}&visited={visitStatus}&myCategoryId={myCategoryId}&myCategoryId={myCategoryId}...
+     * [GET] /stores/map?latitude={latitude}&longitude={longitude}&radius={radius}&visited={visitStatus}&myCategoryId={myCategoryId}&myCategoryId={myCategoryId}...
      */
     @GetMapping("/map")
     public ResponseEntity<List<GetStoresInMapResponse>> getStoresInMap(
             @AuthenticationPrincipal AuthUser authUser,
-            @RequestParam(name = "townCode") String townCode,
+//            @RequestParam(name = "townCode") String townCode,
+            @RequestParam(name = "longitude") double longitude,
+            @RequestParam(name = "latitude") double latitude,
+            @RequestParam(name = "radius", defaultValue = "1000", required = false) int radius,   // meter 단위, 기본 1km
             @RequestParam(name = "myCategoryId", required = false) List<Long> myCategoryIds,
             @RequestParam(name = "visited", required = false) Boolean visited
             ) {
 
         User user = authUser.getUser();
-        List<GetStoresInMapResponse> getStoresInMaps = storeService.getStoresInMap(user, townCode, myCategoryIds, visited);
+        List<GetStoresInMapResponse> getStoresInMaps = storeService.getStoresInMap(String.valueOf(user.getUserId()), longitude, latitude, radius, myCategoryIds, visited);
         return  ResponseEntity.status(HttpStatus.OK).body(getStoresInMaps);
     }
 
@@ -75,7 +78,8 @@ public class StoreController {
     public ResponseEntity<List<GetPinStoreResponse>> getPinStoresByCategoryAndLocation(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(name = "myCategoryId", required = false) Long myCategoryId,
-            @RequestParam(name = "townCode") String townCode){
+            @RequestParam(name = "townCode") String townCode
+    ){
         User user = authUser.getUser();
         List<GetPinStoreResponse> storeList = storeService.getPinStoresByCategoryAndLocation(user, myCategoryId, townCode);
         return ResponseEntity.status(HttpStatus.OK).body(storeList);

@@ -6,15 +6,16 @@ import com.umc.gusto.domain.user.entity.User;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 
 public interface StoreService {
 
     List<GetStoreResponse> getStores(User user, List<Long> storeIds);
     GetStoreDetailResponse getStoreDetail(User user, Long storeId, LocalDate visitedAt, Long reviewId);
-    List<GetStoresInMapResponse> getStoresInMap(User user, String townName, List<Long> myCategoryIds, Boolean visited);
-    List<GetPinStoreResponse> getPinStoresByCategoryAndLocation(User user, Long myCategoryId, String townName);
-    Map<String, Object> getVisitedPinStores(User user, Long myCategoryId, String townName, Long lastStoreId, int size);
-    Map<String, Object> getUnvisitedPinStores(User user, Long myCategoryId, String townName, Long lastStoreId, int size);
-    SearchStoreResponse searchStore(String keyword, Long cursor);
+    List<GetStoresInMapResponse> getStoresInMap(String userId, Double longitude, Double latitude, int radius, List<Long> myCategoryIds, Boolean visited);
+    List<GetPinStoreResponse> getPinStoresByCategoryAndLocation(User user, Long myCategoryId, String townCode);
+    Map<String, Object> getVisitedPinStores(User user, Long myCategoryId, String townCode, Long lastStoreId, int size);
+    Map<String, Object> getUnvisitedPinStores(User user, Long myCategoryId, String townCode, Long lastStoreId, int size);
+    List<GetStoreInfoResponse> searchStore(String keyword);
 }
