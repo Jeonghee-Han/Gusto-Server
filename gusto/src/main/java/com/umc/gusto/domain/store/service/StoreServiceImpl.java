@@ -3,8 +3,6 @@ package com.umc.gusto.domain.store.service;
 import com.umc.gusto.domain.myCategory.entity.Pin;
 import com.umc.gusto.domain.myCategory.repository.PinRepository;
 import com.umc.gusto.domain.review.entity.Review;
-import com.umc.gusto.domain.review.model.response.BasicViewResponse;
-import com.umc.gusto.domain.review.model.response.SearchFeedResponse;
 import com.umc.gusto.domain.review.repository.ReviewRepository;
 import com.umc.gusto.domain.store.entity.OpeningHours;
 import com.umc.gusto.domain.store.entity.Store;
@@ -335,6 +333,8 @@ public class StoreServiceImpl implements StoreService{
                             .storeName(result.getStoreName())
                             .categoryString(result.getCategoryString())
                             .address(result.getAddress())
+                            .latitude(result.getLatitude())
+                            .longitude(result.getLongitude())
                             .reviewImg(reviewImg)
                             .build();
                 })
