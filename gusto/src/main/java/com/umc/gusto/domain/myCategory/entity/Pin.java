@@ -33,4 +33,8 @@ public class Pin extends BaseTime {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "storeId")
     private Store store;
+
+    public void updateMyCategory(MyCategory myCategory) {
+        this.myCategory = myCategory;
+    }
 }

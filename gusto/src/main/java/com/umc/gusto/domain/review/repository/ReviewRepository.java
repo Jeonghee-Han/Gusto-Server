@@ -28,7 +28,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     List<Review> findFirst4ByStoreOrderByLikedDesc(@Param("store") Store store);
     @Query("SELECT r FROM Review r WHERE r.user.memberStatus = 'ACTIVE' AND  r.status = 'ACTIVE' AND r.user.publishReview = 'PUBLIC' AND r.publishReview = 'PUBLIC' AND r.store = :store ORDER BY r.visitedAt DESC, r.reviewId DESC")
     Page<Review> findFirstReviewsByStore(@Param("store") Store store, Pageable pageable);
-    @Query("SELECT r FROM Review r WHERE r.user.memberStatus = 'ACTIVE' AND r.status = 'ACTIVE' AND r.user.publishReview = 'PUBLIC' AND r.publishReview = 'PUBLIC'AND r.store = :store AND r.visitedAt <= :visitedAt AND r.reviewId < :reviewId ORDER BY r.visitedAt DESC, r.reviewId DESC")
+    @Query("SELECT r FROM Review r WHERE r.user.memberStatus = 'ACTIVE' AND r.status = 'ACTIVE' AND r.user.publishReview = 'PUBLIC' AND r.publishReview = 'PUBLIC' AND r.store = :store AND r.visitedAt <= :visitedAt AND r.reviewId < :reviewId ORDER BY r.visitedAt DESC, r.reviewId DESC")
     Page<Review> findReviewsAfterIdByStore(@Param("store") Store store, @Param("visitedAt") LocalDate visitedAt, @Param("reviewId") Long reviewId, Pageable pageable);
     boolean existsByReviewIdAndUser(Long reviewId, User user);
     @Query("SELECT count(r.reviewId) FROM Review r WHERE r.user.memberStatus = 'ACTIVE' AND r.status = 'ACTIVE' AND r.store = :store AND r.user.nickname = :nickname")
