@@ -216,8 +216,18 @@ public class StoreServiceImpl implements StoreService{
         List<GetStoreInfoResponse> visitedStoresInfo = new ArrayList<>();
         List<GetStoreInfoResponse> unvisitedStoresInfo = new ArrayList<>();
 
+        Set<Long> processedStoreIds = new HashSet<>();
+
         for (Pin pin : pins){
             Store store = pin.getStore();
+
+            // 이미 처리한 가게라면 건너뛰기
+            if (processedStoreIds.contains(store.getStoreId())) {
+                continue;
+            }
+            // 처리한 가게 ID 기록
+            processedStoreIds.add(store.getStoreId());
+
             Optional<Review> topReviewOptional = reviewRepository.findFirstByStoreOrderByLikedDesc(store);
             String reviewImg = topReviewOptional.map(Review::getImg1).orElse("");
             boolean hasVisited = reviewRepository.existsByStoreAndUserNickname(store, user.getNickname());
@@ -228,6 +238,8 @@ public class StoreServiceImpl implements StoreService{
                     .storeName(store.getStoreName())
                     .address(store.getAddress())
                     .reviewImg(reviewImg)
+                    .longitude(store.getLongitude())
+                    .latitude(store.getLatitude())
                     .build();
 
             if(!hasVisited){
