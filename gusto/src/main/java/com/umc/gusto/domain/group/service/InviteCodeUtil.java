@@ -23,7 +23,7 @@ public class InviteCodeUtil {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final String SECRET;
 
-    private static final long EXPIRATION_HOURS = 24;
+    private static final long EXPIRATION_HOURS = 168;
     private static final int RANDOM_STRING_LENGTH = 10;
 
     // 생성자 주입
