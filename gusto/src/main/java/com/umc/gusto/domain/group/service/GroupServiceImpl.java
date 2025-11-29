@@ -21,7 +21,6 @@ import com.umc.gusto.domain.store.repository.StoreRepository;
 import com.umc.gusto.domain.group.repository.InvitationCodeRepository;
 import com.umc.gusto.domain.route.repository.RouteRepository;
 import com.umc.gusto.domain.user.entity.User;
-import com.umc.gusto.domain.user.repository.UserRepository;
 import com.umc.gusto.global.common.BaseEntity;
 import com.umc.gusto.global.exception.Code;
 import com.umc.gusto.global.exception.GeneralException;
@@ -33,7 +32,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.apache.commons.lang3.RandomStringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -44,15 +42,14 @@ import java.util.stream.Collectors;
 public class GroupServiceImpl implements GroupService{
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
-    private final UserRepository userRepository;
     private final InvitationCodeRepository invitationCodeRepository;
     private final GroupListRepository groupListRepository;
     private final RouteRepository routeRepository;
-    private static final int INVITE_CODE_LENGTH = 12;
     private final StoreRepository storeRepository;
     private final ReviewRepository reviewRepository;
     private static final int GROUP_LIST_FIRST_PAGE = 8;
     private static final int GROUP_LIST_PAGE = 6;
+    private final InviteCodeUtil inviteCodeUtil;
 
 
     public void createGroup(User owner, PostGroupRequest postGroupRequest){
@@ -73,7 +70,7 @@ public class GroupServiceImpl implements GroupService{
         groupMemberRepository.save(ownerMember);
 
         // 초대 코드
-        String code = RandomStringUtils.randomAlphanumeric(INVITE_CODE_LENGTH);
+        String code = inviteCodeUtil.generateInviteCode(savedGroup.getGroupId());
         InvitationCode invitationCode = InvitationCode.builder()
                 .group(group)
                 .code(code)
@@ -153,24 +150,16 @@ public class GroupServiceImpl implements GroupService{
     }
 
     public void joinGroup(User user, JoinGroupRequest joinGroupRequest){
-        Group group = groupRepository.findGroupByCodeAndStatus(joinGroupRequest.getCode(), BaseEntity.Status.ACTIVE)
-                .orElseThrow(()->new GeneralException(Code.FIND_FAIL_GROUP));
+        Group group = validateInvitationCodeAndGetGroup(joinGroupRequest.getCode());
 
-        // 이미 그룹에 참여한 유저인지 확인
-        boolean isMember = groupMemberRepository.existsGroupMemberByGroupAndUser(group, user);
-        if (isMember) {
+        if (groupMemberRepository.existsGroupMemberByGroupAndUser(group, user)) {
             throw new GeneralException(Code.ALREADY_JOINED_GROUP);
         }
 
-        // 그룹 참여
-        User joinUser = userRepository.findById(user.getUserId())
-                .orElseThrow(()->new GeneralException(Code.USER_NOT_FOUND));
-
         GroupMember groupMember = GroupMember.builder()
                 .group(group)
-                .user(joinUser)
+                .user(user)
                 .build();
-
         groupMemberRepository.save(groupMember);
     }
 
@@ -183,18 +172,55 @@ public class GroupServiceImpl implements GroupService{
         groupMemberRepository.delete(groupMember);
     }
   
-    @Transactional(readOnly = true)
-    public GetInvitationCodeResponse getInvitationCode(Long groupId) {
+    @Transactional
+    public GetInvitationCodeResponse getInvitationCode(User user,Long groupId) {
         Group group = groupRepository.findGroupByGroupIdAndStatus(groupId, BaseEntity.Status.ACTIVE)
                 .orElseThrow(() -> new GeneralException(Code.FIND_FAIL_GROUP));
+
+
         InvitationCode invitationCode = invitationCodeRepository.findInvitationCodeByGroup(group)
                 .orElseThrow(() -> new GeneralException(Code.INVITATION_CODE_NOT_FOUND));
 
-        return GetInvitationCodeResponse.builder()
-                .invitationCodeId(invitationCode.getInvitationCodeId())
-                .groupId(invitationCode.getGroup().getGroupId())
-                .code(invitationCode.getCode())
-                .build();
+        String currentCode = invitationCode.getCode();
+        boolean isExpired;
+
+        try {
+            // 현재 코드가 유효한지 검증
+            inviteCodeUtil.validateAndGetGroupId(currentCode);
+            isExpired = false;
+        } catch (GeneralException e) {
+            // 코드가 만료되었거나 유효하지 않은 경우
+            if (e.getCode() == Code.INVITE_CODE_EXPIRED) {
+                isExpired = true;
+            } else {
+                throw new GeneralException(Code.INVALID_INVITATION_CODE);
+            }
+        }
+
+        if (isExpired) {
+            // 요청자가 그룹장인 경우 -> 새 코드 발급
+            if (group.getOwner().getUserId().equals(user.getUserId())) {
+                String newCode = inviteCodeUtil.generateInviteCode(groupId);
+                invitationCode.updateCode(newCode); // DB 업데이트
+                invitationCodeRepository.save(invitationCode);
+
+                return GetInvitationCodeResponse.builder()
+                        .invitationCodeId(invitationCode.getInvitationCodeId())
+                        .groupId(groupId)
+                        .code(newCode)
+                        .build();
+            } else {
+                // 요청자가 그룹원인 경우 -> 만료 메시지 반환
+                throw new GeneralException(Code.INVITE_CODE_EXPIRED);
+            }
+        } else {
+            // 만료되지 않은 경우 -> 기존 코드 반환
+            return GetInvitationCodeResponse.builder()
+                    .invitationCodeId(invitationCode.getInvitationCodeId())
+                    .groupId(groupId)
+                    .code(currentCode)
+                    .build();
+        }
     }
 
     @Transactional(readOnly = true)
@@ -291,8 +317,7 @@ public class GroupServiceImpl implements GroupService{
 
     @Transactional(readOnly = true)
     public GetPreJoinGroupInfoResponse getPreJoinGroupInfo(JoinGroupRequest joinGroupRequest){
-        Group group = groupRepository.findGroupByCodeAndStatus(joinGroupRequest.getCode(), BaseEntity.Status.ACTIVE)
-                .orElseThrow(()->new GeneralException(Code.FIND_FAIL_GROUP));
+        Group group = validateInvitationCodeAndGetGroup(joinGroupRequest.getCode());
 
         int numMembers = groupMemberRepository.countGroupMembersByGroup(group);
 
@@ -409,4 +434,26 @@ public class GroupServiceImpl implements GroupService{
 
     }
 
+    private Group validateInvitationCodeAndGetGroup(String code) {
+        // 1. 코드 자체의 유효성(형식, 서명, 만료여부) 먼저 검증
+        // 여기서 만료된 코드라면 INVITE_CODE_EXPIRED 예외 발생
+        Long groupIdFromCode = inviteCodeUtil.validateAndGetGroupId(code);
+
+        // 2. 코드가 유효하다면, 코드에 들어있던 groupId로 그룹 조회
+        Group group = groupRepository.findGroupByGroupIdAndStatus(groupIdFromCode, BaseEntity.Status.ACTIVE)
+                .orElseThrow(() -> new GeneralException(Code.FIND_FAIL_GROUP));
+
+        // 3. 유효기간이 남은 구버전 코드일 경우
+        InvitationCode currentInvitationCode = invitationCodeRepository.findInvitationCodeByGroup(group)
+                .orElseThrow(() -> new GeneralException(Code.INVITATION_CODE_NOT_FOUND));
+
+        // 만약 사용자가 보낸 코드가 현재 DB 코드와 다르다면? (이미 재발급됨)
+        if (!currentInvitationCode.getCode().equals(code)) {
+            // 만료되진 않았지만(1번 통과), 구버전 코드임.
+            // 이 경우 "만료됨"으로 처리
+            throw new GeneralException(Code.INVITE_CODE_EXPIRED);
+        }
+
+        return group;
+    }
 }

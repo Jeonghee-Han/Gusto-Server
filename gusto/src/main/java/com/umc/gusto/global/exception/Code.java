@@ -60,7 +60,11 @@ public enum Code {
     GROUPLIST_NOT_FROUND(HttpStatus.NOT_FOUND,403409,"존재하지 않는 그룹 내 상점입니다."),
     ALREADY_JOINED_GROUP(HttpStatus.BAD_REQUEST, 400410, "이미 해당 그룹에 참여한 유저입니다."),
     ALREADY_ADD_GROUP_LIST(HttpStatus.BAD_REQUEST, 400411,"이미 해당 그룹에 존재하는 그룹리스트입니다."),
-  
+    INVITE_CODE_EXPIRED(HttpStatus.BAD_REQUEST, 400412, "초대 코드가 만료되었습니다."),
+    INVALID_INVITE_CODE_FORMAT(HttpStatus.BAD_REQUEST, 400414, "초대 코드의 형식이 올바르지 않습니다."),
+    INVITE_CODE_SIGNATURE_MISMATCH(HttpStatus.BAD_REQUEST, 400415, "초대 코드가 위변조되었거나 손상되었습니다."),
+    INVALID_INVITE_CODE(HttpStatus.BAD_REQUEST, 400416, "초대 코드 정보를 읽을 수 없습니다."),
+
     //myCategory 관련 에러 +5
     MY_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, 404501, "존재하지 않는 카테고리입니다."),
     PIN_NOT_FOUND(HttpStatus.NOT_FOUND, 404502,"존재하지 않는 찜 입니다"),

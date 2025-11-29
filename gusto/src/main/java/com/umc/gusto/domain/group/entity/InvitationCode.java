@@ -24,6 +24,10 @@ public class InvitationCode extends BaseTime {
     @JoinColumn(name = "groupId", nullable = false)
     private Group group;
 
-    @Column(columnDefinition = "VARCHAR(255)")
+    @Column(columnDefinition = "VARCHAR(512)")
     private String code;
+
+    public void updateCode(String newCode){
+        this.code = newCode;
+    }
 }

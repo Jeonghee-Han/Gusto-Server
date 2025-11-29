@@ -30,7 +30,7 @@ public interface GroupService {
     PagingResponse getAllGroupList(Long groupId, Long groupListId,User user);
 
     // 그룹 초대 코드 조회
-    GetInvitationCodeResponse getInvitationCode(Long groupId);
+    GetInvitationCodeResponse getInvitationCode(User user, Long groupId);
 
     // 그룹 소유권 이전
     TransferOwnershipResponse transferOwnership(User owner, Long groupId, TransferOwnershipRequest transferOwnershipRequest);

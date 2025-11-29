@@ -80,8 +80,9 @@ public class GroupController {
      * [GET] /groups/{groupId}/invitationCode
      */
     @GetMapping("/{groupId}/invitationCode")
-    public ResponseEntity<GetInvitationCodeResponse> getInvitationCode(@PathVariable Long groupId) {
-        GetInvitationCodeResponse getInvitationCode = groupService.getInvitationCode(groupId);
+    public ResponseEntity<GetInvitationCodeResponse> getInvitationCode(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long groupId) {
+        User user = authUser.getUser();
+        GetInvitationCodeResponse getInvitationCode = groupService.getInvitationCode(user, groupId);
         return ResponseEntity.status(HttpStatus.OK).body(getInvitationCode);
     }
 
